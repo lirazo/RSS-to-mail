@@ -13,7 +13,7 @@ function feed_merger_theme() {
   return array(
     'feed_merger_items_email' => array(
       'template' => 'feed-items-email',
-      'variables' => array('feedItems' => NULL, 'user' => NULL)
+      'variables' => array('feeds' => NULL)
     )
   );
 }
@@ -84,16 +84,16 @@ function feed_merger_mail_alter(&$message) {
 function feed_merger_cron() {
   $users = entity_load('user');
   foreach($users as $user) {
-    $feeds = _feed_merger_get_feeds($user->uid);
-    if(!empty($feeds)) { //TODO watchdog si $feeds is empty ?
-      $feedItems = array();
-      foreach($feeds as $feed) {
-        $feedItems = array_merge($feedItems, _feed_merger_get_feed_items($feed));
+    $feedNodes = _feed_merger_get_feeds($user->uid);
+    if(!empty($feedNodes)) { //TODO watchdog si $feeds is empty ?
+      $feeds = array();
+      foreach($feedNodes as $feedNode) {
+        $feeds[$feedNode->nid] = array(
+          'title' => $feedNode->title,//TODO sanitize title ? XSS
+          'items' => _feed_merger_get_feed_items($feedNode),
+        );
       }
-      $output = theme('feed_merger_items_email', array(
-        'feedItems' => $feedItems,
-        'user' => $user
-      ));
+      $output = theme('feed_merger_items_email', array('feeds' => $feeds));
       drupal_mail('feed_merger', 'feed_items', $user->mail, language_default(), array(
         'feed_items' => $output,
         'user' => $user
