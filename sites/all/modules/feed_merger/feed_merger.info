@@ -1,0 +1,7 @@
+name = feed_merger
+description = Generates a merged feed for every user ; sends email upon request
+core = 7.x
+package = Feed Merger
+dependencies[] = user
+dependencies[] = node
+files[] = HTMLMailSystem.inc
