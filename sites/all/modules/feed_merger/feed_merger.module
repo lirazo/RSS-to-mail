@@ -5,6 +5,7 @@
 //TODO utiliser job_scheduler pour scheduler le bouzin ?
 //TODO hardening => supprimer dépendances de modules inutiles
 //TODO watchdog
+//TODO have feeds published on a Twitter account
 
 /**
  * Implementation of hook_theme
