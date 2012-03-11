@@ -5,3 +5,4 @@ package = Feed Merger
 dependencies[] = user
 dependencies[] = node
 files[] = HTMLMailSystem.inc
+files[] = libraries/rss-php/feed.class.php
