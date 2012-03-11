@@ -1,6 +1,7 @@
 <?php
 
 define('FEED_MERGER_DEFAULT_URL', 'http://example.net/rss.xml');
+define('FEED_MERGER_PASSWORD_MIN_SIZE', 6);
 
 //TODO interface avec feedburner (cf module feedburner)
 //TODO créer le content-type 'feed' dans le module + la view aussi (utiliser module 'feature' pour exporter tout ça ?)
@@ -148,6 +149,10 @@ function _feed_merger_add_form_validate($form, $form_state) {
   if(!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
     form_set_error('email', t('Invalid email address'));
   }
+  if(mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
+    form_set_error('password', t('Password size should have at least') . ' ' . FEED_MERGER_PASSWORD_MIN_SIZE . ' ' . t('characters'));
+  }
+  //TODO check that the URL actually points at an RSS feed
 }
 
 function _feed_merger_add_form_submit($form, &$form_state) {
