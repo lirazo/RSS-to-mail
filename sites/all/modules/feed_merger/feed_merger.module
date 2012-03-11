@@ -141,7 +141,11 @@ function _feed_merger_add_form_validate($form, $form_state) {
   if(isset($form['password']) && mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
     form_set_error('password', t('Password size should have at least') . ' ' . FEED_MERGER_PASSWORD_MIN_SIZE . ' ' . t('characters'));
   }
-  //TODO check that the URL actually points at an RSS feed
+  try {
+    Feed::loadRss($form_state['values']['url']);
+  } catch(Exception $e) {
+    form_set_error('url', t('Invalid feed URL'));
+  }
   //TODO sanitize inputs ?
 }
 
@@ -159,7 +163,6 @@ function _feed_merger_add_form() {
   //TODO check anti-CSRF token here
   $form['url'] = array(
     '#type' => 'textfield',
-    '#title' => t('Feed URL'),
     '#default_value' => FEED_MERGER_DEFAULT_URL,
   );
   global $user;
@@ -181,5 +184,4 @@ function _feed_merger_add_form() {
   return $form;
 }
 
-//TODO generate merged feed using node_feed ?
 //TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
