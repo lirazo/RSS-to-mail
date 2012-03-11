@@ -144,15 +144,25 @@ function feed_merger_menu() {
   return $items;
 }
 
-function _feed_merger_add() {
+function _feed_merger_add_form_validate($form, $form_state) {
+  if(!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
+    form_set_error('email', t('Invalid email address'));
+  }
+}
+
+function _feed_merger_add_form_submit($form, &$form_state) {
+  //TODO
+}
+
+function _feed_merger_add_form() {
   //TODO check anti-CSRF token here
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => t('Feed URL'),
-    '#default_value' => FEED_MERGER_DEFAULT_URL,//FIXME won't show up
+    '#default_value' => FEED_MERGER_DEFAULT_URL,
   );
   global $user;
-  if($user->uid != 0) {
+  if($user->uid != 0) {//TODO !=
     $form['email'] = array(
       '#type' => 'textfield',
       '#title' => t('Email'),
@@ -167,5 +177,9 @@ function _feed_merger_add() {
     '#value' => t('Add to my feed list'),
   );
   //TODO checkbox 'remember me'
-  return drupal_render($form);
+  return $form;
+}
+
+function _feed_merger_add() {
+  return drupal_get_form('_feed_merger_add_form');
 }
