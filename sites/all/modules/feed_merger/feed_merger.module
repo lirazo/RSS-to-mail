@@ -148,16 +148,23 @@ function _feed_merger_add() {
   //TODO check anti-CSRF token here
   $form['url'] = array(
     '#type' => 'textfield',
-    '#title' => t('URL'),
+    '#title' => t('Feed URL'),
     '#default_value' => FEED_MERGER_DEFAULT_URL,//FIXME won't show up
   );
-  $form['email'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Email'),
-  );
-  $form['password'] = array(
-    '#type' => 'password',
-    '#title' => t('Password'),
+  global $user;
+  if($user->uid != 0) {
+    $form['email'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Email'),
+    );
+    $form['password'] = array(
+      '#type' => 'password',
+      '#title' => t('Password'),
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add to my feed list'),
   );
   //TODO checkbox 'remember me'
   return drupal_render($form);
