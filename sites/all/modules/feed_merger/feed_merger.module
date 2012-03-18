@@ -22,12 +22,32 @@ function feed_merger_theme() {
   );
 }
 
+/**
+ * Returns the list a user has subscribed to
+ * @param uid user ID
+ * @return array of feeds
+ */
 function _feed_merger_get_feeds($uid) {
+  //TODO remove $uid+set current user by default ? (if so, remove argument in documentation)
   $feeds = entity_load('node', FALSE, array(
     'type' => 'feed',
-    'uid' => $uid
+    'uid' => $uid,
   ));
   return $feeds;
+}
+
+/**
+ * Determines whether the user has subscribed to a feedURL
+ * @param feedURL feed URL
+ * @return TRUE if the user has subscribed to the feed ; FALSE if not
+ */
+function _feed_merger_user_has_feed($feedURL) {
+  global $user;
+//TODO
+//type=feed
+//uid=$user->uid
+//field_link = $feedURL
+  return !empty($feeds);
 }
 
 function _feed_merger_get_feed_items($feed) {
@@ -56,11 +76,10 @@ function _feed_merger_get_feed_items($feed) {
 function feed_merger_mail($key, &$message, $params) {
   switch($key) {
     case 'feed_items':
-      $message['subject'] = t('Feeds for @username - @datetime', array('@username' )
-        . ' '
-        . $params['user']->name
-        . ' - '
-        . format_date(time(), 'custom', 'd/m/Y - H:i');
+      $message['subject'] = t('Feeds for @username - @datetime', array(
+        '@username' => $params['user']->name,
+        '@datetime' => format_date(time(), 'custom', 'd/m/Y - H:i'),
+      ));
       $message['body'][] = $params['feed_items'];
       break;
   }
@@ -152,8 +171,17 @@ function _feed_merger_add_form_validate($form, $form_state) {
 }
 
 function _feed_merger_add_form_submit($form, &$form_state) {
-  //TODO if URL already exist, notify user+don't create node
   $feedURL = $form_state['values']['url'];
+
+  //TODO TMP
+  if(_feed_merger_user_has_feed($feedURL)) {
+    drupal_set_message('user has feed ' . $feedURL);
+  } else {
+    drupal_set_message('user has not feed ' . $feedURL);
+  }
+  //END TMP
+
+  //TODO if URL already exist, notify user+don't create node
   $feedNode = new StdClass();
   $feedNode->type = 'feed';
   $feedNode->title = Feed::loadRss($feedURL)->title;
