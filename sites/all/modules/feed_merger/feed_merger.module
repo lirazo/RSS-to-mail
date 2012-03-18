@@ -153,12 +153,24 @@ function feed_merger_disable() {
   variable_set('mail_system', $mailSystem);
 }
 
+/**
+ * Implementation of hook_node_validate
+ */
+function feed_merger_node_validate($node, $form, &$form_state) {
+  if($node->type == 'feed') {
+    $feedURL = $node->field_link[LANGUAGE_NONE][0]['url'];
+    if(_feed_merger_user_has_feed($feedURL)) {
+      form_set_error('url', t('Feed %url is already in your list. ', array('%url' => $feedURL)));
+    }
+  }
+}
+
 //TODO mettre une UI pour fixer la langue de l'utilisateur lors de son inscription
 //TODO unsubscribe link (footer of mail)
 //TODO define 'feed' content type in this module
 
 function _feed_merger_add_form_validate($form, $form_state) {
-//TODO sanitize/normalize user input (ex. user enters URL wihout leading http)
+  //TODO sanitize/normalize user input (ex. user enters URL wihout leading http)
   if(isset($form['email']) && !filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
     form_set_error('email', t('Invalid email address.'));
   }
@@ -171,19 +183,18 @@ function _feed_merger_add_form_validate($form, $form_state) {
   } catch(Exception $e) {
     form_set_error('url', t('Invalid URL. Are you sure %url points to an RSS feed ?', array('%url' => $feedURL)));
   }
-  //TODO sanitize inputs ?
 }
 
 function _feed_merger_add_form_submit($form, &$form_state) {
   $feedURL = $form_state['values']['url'];
-  if(_feed_merger_user_has_feed($feedURL)) {//TODO move this test into hook_node
-    drupal_set_message(t('Feed %url is already in your list. ', array('%url' => $feedURL)));
-  } else {
-    $feedNode = new StdClass();
-    $feedNode->type = 'feed';
-    $feedNode->title = Feed::loadRss($feedURL)->title;
-    $feedNode->field_link[LANGUAGE_NONE][]['url'] = $feedURL;
-    node_object_prepare($feedNode);
+  $feedNode = new StdClass();
+  $feedNode->type = 'feed';
+  $feedNode->title = Feed::loadRss($feedURL)->title;
+  $feedNode->field_link[LANGUAGE_NONE][]['url'] = $feedURL;
+  node_object_prepare($feedNode);
+  node_validate($feedNode, $form, $form_state);
+  $errors = form_get_errors();
+  if(empty($errors)) {
     node_save($feedNode);
     drupal_set_message(t('Successfully added %url to your feed list.', array('%url' => $feedURL)));
   }
