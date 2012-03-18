@@ -56,7 +56,8 @@ function _feed_merger_get_feed_items($feed) {
 function feed_merger_mail($key, &$message, $params) {
   switch($key) {
     case 'feed_items':
-      $message['subject'] = t('Feeds for ')
+      $message['subject'] = t('Feeds for @username - @datetime', array('@username' )
+        . ' '
         . $params['user']->name
         . ' - '
         . format_date(time(), 'custom', 'd/m/Y - H:i');
@@ -136,27 +137,30 @@ function feed_merger_disable() {
 
 function _feed_merger_add_form_validate($form, $form_state) {
   if(isset($form['email']) && !filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
-    form_set_error('email', t('Invalid email address'));
+    form_set_error('email', t('Invalid email address.'));
   }
   if(isset($form['password']) && mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
-    form_set_error('password', t('Password size should have at least') . ' ' . FEED_MERGER_PASSWORD_MIN_SIZE . ' ' . t('characters'));
+    form_set_error('password', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
   }
+  $feedURL = $form_state['values']['url'];
   try {
-    Feed::loadRss($form_state['values']['url']);
+    Feed::loadRss($feedURL);
   } catch(Exception $e) {
-    form_set_error('url', t('Invalid feed URL'));
+    form_set_error('url', t('Invalid URL. Are you sure %url points to an RSS feed ?', array('%url' => $feedURL)));
   }
   //TODO sanitize inputs ?
 }
 
 function _feed_merger_add_form_submit($form, &$form_state) {
+  //TODO if URL already exist, notify user+don't create node
+  $feedURL = $form_state['values']['url'];
   $feedNode = new StdClass();
   $feedNode->type = 'feed';
-  $feedNode->title = Feed::loadRss($form_state['values']['url'])->title;
-  $feedNode->field_link[LANGUAGE_NONE][]['url'] = $form_state['values']['url'];
+  $feedNode->title = Feed::loadRss($feedURL)->title;
+  $feedNode->field_link[LANGUAGE_NONE][]['url'] = $feedURL;
   node_object_prepare($feedNode);
   node_save($feedNode);
-  //TODO if URL already exist, notify user+don't create node
+  drupal_set_message(t('Successfully added %url to your feed list.', array('%url' => $feedURL)));
 }
 
 function _feed_merger_add_form() {
