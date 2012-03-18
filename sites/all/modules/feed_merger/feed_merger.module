@@ -54,7 +54,7 @@ function _feed_merger_user_has_feed($feedURL) {
 }
 
 function _feed_merger_get_feed_items($feed) {
-  $xmlUrl = $feed->field_url['und'][0]['url'];
+  $xmlUrl = $feed->field_url[LANGUAGE_NONE][0]['url'];
   $xmlData = drupal_http_request($xmlUrl)->data;
   $xmlObject = simplexml_load_string($xmlData);
   //TODO controle XML bien formé ? voir si fourni dans simplexml
