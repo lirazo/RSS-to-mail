@@ -193,9 +193,17 @@ function _feed_merger_create_login_user($email, $password) {
 //TODO if user is not logged in => create an account if necessary + open up session
   $account = user_load_by_mail($email);
   if(!$account) {
-    //TODO create user
+    //TODO create user from email/password
+
   }
   $uid = user_authenticate($account->name, $password);//TODO apply email as username and simplify this piece of code
+  if(!$uid) {
+    //TODO check if passsword matchs email. If not, raise an form error (return FALSE)
+
+  }
+  global $user;
+  $user = user_load($uid);
+  //TODO drupal_save_session(FALSE) ?
   
 }
 
