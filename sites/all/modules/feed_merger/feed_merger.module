@@ -184,36 +184,8 @@ function _feed_merger_add_form_validate($form, $form_state) {
   }
 }
 
-/**
- * Check if a user already have this email. Create a user if not. Log in the user.
- * @email email
- * @password password
- */
-function _feed_merger_create_login_user($email, $password) {
-//TODO if user is not logged in => create an account if necessary + open up session
-  $account = user_load_by_mail($email);
-  if(!$account) {
-    //TODO create user from email/password
-
-  }
-  $uid = user_authenticate($account->name, $password);//TODO apply email as username and simplify this piece of code
-  if(!$uid) {
-    //TODO check if passsword matchs email. If not, raise an form error (return FALSE)
-
-  }
-  global $user;
-  $user = user_load($uid);
-  //TODO drupal_save_session(FALSE) ?
-  
-}
-
 function _feed_merger_add_form_submit($form, &$form_state) {
   $feedURL = $form_state['values']['url'];
-  if(isset($form_state['values']['email'])) {
-    $email = $form_state['values']['email'];
-    $password = $form_state['values']['password'];
-    _feed_merger_create_login_user($email, $password);
-  }
   global $user;
   $feedNode = new StdClass();
   $feedNode->uid = $user->uid;
@@ -234,24 +206,47 @@ function _feed_merger_add_form() {
   $form['url'] = array(
     '#type' => 'textfield',
     '#default_value' => FEED_MERGER_DEFAULT_URL,
+    '#weight' => -10,
   );
-  global $user;
-  if($user->uid == 0) {
-    $form['email'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Email'),
-    );
-    $form['password'] = array(
-      '#type' => 'password',
-      '#title' => t('Password'),
-    );
-  }
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add to my feed list'),
+  $form['actions'] = array(
+    '#type' => 'actions',
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Add to my feed list'),
+    )
   );
-  //TODO checkbox 'remember me'
   return $form;
 }
 
 //TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
+
+function _feed_merger_get_form() {
+  $add_form = drupal_get_form('_feed_merger_add_form');
+  $user_form = drupal_get_form('user_login_block');
+  global $user;
+  return ($user->uid == 0) ? array_merge($add_form, $user_form) : $add_form;
+}
+
+/**
+ * Implementation of hook_block_info
+ */
+function feed_merger_block_info() {
+  $blocks[0] = array(
+    'info' => 'Add to my feed list',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view
+ */
+function feed_merger_block_view($delta = '') {
+  switch($delta) {
+    case 0:
+      return array(
+        'subject' => NULL,
+        'content' => _feed_merger_get_form(),
+      );
+  }
+}
