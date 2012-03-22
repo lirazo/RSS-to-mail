@@ -108,8 +108,8 @@ function feed_merger_mail_alter(&$message) {
  * Implementation of hook_cron
  */
 function feed_merger_cron() {
-  $users = entity_load('user');
-  foreach($users as $user) {
+  $accounds = entity_load('user');
+  foreach($accounts as $account) {
     $feedNodes = _feed_merger_get_feeds();
     if(!empty($feedNodes)) { //TODO watchdog si $feeds is empty ?
       $feeds = array();
@@ -120,9 +120,9 @@ function feed_merger_cron() {
         );
       }
       $output = theme('feed_merger_items_email', array('feeds' => $feeds));
-      drupal_mail('feed_merger', 'feed_items', $user->mail, language_default(), array(
+      drupal_mail('feed_merger', 'feed_items', $account->mail, language_default(), array(
         'feed_items' => $output,
-        'user' => $user
+        'user' => $account
       ));
     }
     //TODO sort feedItems par pubDate
@@ -184,9 +184,28 @@ function _feed_merger_add_form_validate($form, $form_state) {
   }
 }
 
-function _feed_merger_add_form_submit($form, &$form_state) {
+/**
+ * Check if a user already have this email. Create a user if not. Log in the user.
+ * @email email
+ * @password password
+ */
+function _feed_merger_create_login_user($email, $password) {
 //TODO if user is not logged in => create an account if necessary + open up session
+  $account = user_load_by_mail($email);
+  if(!$account) {
+    //TODO create user
+  }
+  $uid = user_authenticate($account->name, $password);//TODO apply email as username and simplify this piece of code
+  
+}
+
+function _feed_merger_add_form_submit($form, &$form_state) {
   $feedURL = $form_state['values']['url'];
+  if(isset($form_state['values']['email'])) {
+    $email = $form_state['values']['email'];
+    $password = $form_state['values']['password'];
+    _feed_merger_create_login_user($email, $password);
+  }
   global $user;
   $feedNode = new StdClass();
   $feedNode->uid = $user->uid;
