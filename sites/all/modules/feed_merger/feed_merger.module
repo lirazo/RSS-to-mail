@@ -226,16 +226,30 @@ function _feed_merger_login_add_feed_form_validate($form, $form_state) {
   if(mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
     form_set_error('password', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
   }
-  drupal_validate_form('_feed_merger_add_feed_form', $form, $form_state);
+  //drupal_validate_form('_feed_merger_add_feed_form', $form, $form_state);FIXME this line should be required
 }
 
+//TODO if user changes his email address then synchronize email with name (hook_node_alter)
+//TODO install module 'email registration'
+
 function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
-  if(login does not exists) {//FIXME
-    //TODO create login+pwd
+  $email = $form_state['values']['email'];
+  $password = $form_state['values']['password'];
+  if(user_load($email)) {
+    //user does not exist -> register user
+    $register_form_state['values']['name'] = $email;
+    $register_form_state['values']['mail'] = $email;
+    $register_form_state['values']['pass']['pass1'] = $password;
+    $register_form_state['values']['pass']['pass2'] = $password;
+    $register_form_state['values']['op'] = t('Create new account');//FIXME is that actually necessary ?
+    drupal_form_submit('user_register_form', $register_form_state);
   }
-  if(login matches password) {//FIXME
-    //TODO impersonate user
-    drupal_form_submit('_feed_merger_add_feed_form', $form, $form_state);
+  if(user_authenticate($email, $password)) {//FIXME
+    //user/password match -> login user + add feed to feed list
+    $login_form_state['values']['name'] = $email;
+    $login_form_state['values']['pass'] = $password;
+    drupal_form_submit('_user_login_form', $login_form_state);
+    drupal_form_submit('_feed_merger_add_feed_form', $form_state);
   } else {
     form_set_error('password', t('Sorry, username and password do not match. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password'))));
   }
