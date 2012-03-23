@@ -209,7 +209,6 @@ function _feed_merger_add_form() {
     '#weight' => -10,
   );
   $form['actions'] = array(
-    '#type' => 'actions',
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Add to my feed list'),
@@ -218,14 +217,8 @@ function _feed_merger_add_form() {
   return $form;
 }
 
-//TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
-
-function _feed_merger_get_form() {
-  $add_form = drupal_get_form('_feed_merger_add_form');
-  $user_form = drupal_get_form('user_login_block');
-  global $user;
-  return ($user->uid == 0) ? array_merge($add_form, $user_form) : $add_form;
-}
+//TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated" (module 'persistent login')
+//TODO login using Twitter
 
 /**
  * Implementation of hook_block_info
@@ -246,7 +239,8 @@ function feed_merger_block_view($delta = '') {
     case 0:
       return array(
         'subject' => NULL,
-        'content' => _feed_merger_get_form(),
+        'content' => drupal_get_form('_feed_merger_add_form'),
       );
   }
 }
+
