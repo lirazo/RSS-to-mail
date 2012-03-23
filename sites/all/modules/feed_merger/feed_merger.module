@@ -168,14 +168,12 @@ function feed_merger_node_validate($node, $form, &$form_state) {
 //TODO unsubscribe link (footer of mail)
 //TODO define 'feed' content type in this module
 
-function _feed_merger_add_form_validate($form, $form_state) {
+/*****************************************************************************************
+ * 'Add feed' form
+ *****************************************************************************************/
+
+function _feed_merger_add_feed_form_validate($form, $form_state) {
   //TODO sanitize/normalize user input (ex. user enters URL wihout leading http -> use module canonical_url / nodewords)
-  if(isset($form['email']) && !filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
-    form_set_error('email', t('Invalid email address.'));
-  }
-  if(isset($form['password']) && mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
-    form_set_error('password', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
-  }
   $feedURL = $form_state['values']['url'];
   try {
     Feed::loadRss($feedURL);
@@ -184,7 +182,7 @@ function _feed_merger_add_form_validate($form, $form_state) {
   }
 }
 
-function _feed_merger_add_form_submit($form, &$form_state) {
+function _feed_merger_add_feed_form_submit($form, &$form_state) {
   $feedURL = $form_state['values']['url'];
   global $user;
   $feedNode = new StdClass();
@@ -201,10 +199,11 @@ function _feed_merger_add_form_submit($form, &$form_state) {
   }
 }
 
-function _feed_merger_add_form() {
+function _feed_merger_add_feed_form() {
   //TODO check anti-CSRF token here
   $form['url'] = array(
     '#type' => 'textfield',
+    '#title' => t('Feed URL'),
     '#default_value' => FEED_MERGER_DEFAULT_URL,
     '#weight' => -10,
   );
@@ -215,6 +214,46 @@ function _feed_merger_add_form() {
     )
   );
   return $form;
+}
+
+/*****************************************************************************************
+ * 'Login and add feed' form
+ *****************************************************************************************/
+function _feed_merger_login_add_feed_form_validate($form, $form_state) {
+  if(!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
+    form_set_error('email', t('Invalid email address.'));
+  }
+  if(mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
+    form_set_error('password', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
+  }
+  drupal_validate_form('_feed_merger_add_feed_form', $form, $form_state);
+}
+
+function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
+  if(login does not exists) {//FIXME
+    //TODO create login+pwd
+  }
+  if(login matches password) {//FIXME
+    //TODO impersonate user
+    drupal_form_submit('_feed_merger_add_feed_form', $form, $form_state);
+  } else {
+    form_set_error('password', t('Sorry, username and password do not match. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password'))));
+  }
+}
+
+function _feed_merger_login_add_feed_form() {
+  //TODO check CSRF here
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#required' => TRUE,
+  );
+  $form['password'] = array(//TODO mandatory
+    '#type' => 'password',
+    '#title' => t('Password'),
+    '#required' => TRUE,
+  );
+  return array_merge($form, _feed_merger_add_feed_form());
 }
 
 //TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated" (module 'persistent login')
@@ -228,6 +267,10 @@ function feed_merger_block_info() {
     'info' => 'Add to my feed list',
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks[1] = array(
+    'info' => 'Login and add to my feed list',
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
@@ -239,7 +282,12 @@ function feed_merger_block_view($delta = '') {
     case 0:
       return array(
         'subject' => NULL,
-        'content' => drupal_get_form('_feed_merger_add_form'),
+        'content' => drupal_get_form('_feed_merger_add_feed_form'),
+      );
+    case 1:
+      return array(
+        'subject' => NULL,
+        'content' => drupal_get_form('_feed_merger_login_add_feed_form'),
       );
   }
 }
