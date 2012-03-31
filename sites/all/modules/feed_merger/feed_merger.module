@@ -1,7 +1,6 @@
 <?php
 
 define('FEED_MERGER_DEFAULT_URL', 'http://example.net/rss.xml');
-define('FEED_MERGER_PASSWORD_MIN_SIZE', 6);
 
 //TODO interface avec feedburner (cf module feedburner)
 //TODO créer le content-type 'feed' dans le module + la view aussi (utiliser module 'feature' pour exporter tout ça ?)
@@ -220,12 +219,14 @@ function _feed_merger_add_feed_form() {
  * 'Login and add feed' form
  *****************************************************************************************/
 function _feed_merger_login_add_feed_form_validate($form, $form_state) {
+  /*
   if(!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
     form_set_error('email', t('Invalid email address.'));
   }
   if(mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
     form_set_error('password', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
   }
+  */
   //drupal_validate_form('_feed_merger_add_feed_form', $form, $form_state);FIXME this line should be required
 }
 
@@ -233,26 +234,27 @@ function _feed_merger_login_add_feed_form_validate($form, $form_state) {
 //TODO install module 'email registration'
 
 function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
+  //TODO sanitize input values (trim+XSS safe) : email/pwd
   $email = $form_state['values']['email'];
   $password = $form_state['values']['password'];
-  if(user_load($email)) {
+  if(!user_load_by_mail($email)) {
     //user does not exist -> register user
     $register_form_state['values']['name'] = $email;
     $register_form_state['values']['mail'] = $email;
     $register_form_state['values']['pass']['pass1'] = $password;
     $register_form_state['values']['pass']['pass2'] = $password;
     $register_form_state['values']['op'] = t('Create new account');//FIXME is that actually necessary ?
-    drupal_form_submit('user_register_form', $register_form_state);
+    drupal_form_submit('user_register_form', $register_form_state);//FIXME test this !
   }
-  if(user_authenticate($email, $password)) {//FIXME
+  if(user_authenticate($email, $password)) {//FIXME test this !
     //user/password match -> login user + add feed to feed list
     $login_form_state['values']['name'] = $email;
     $login_form_state['values']['pass'] = $password;
     drupal_form_submit('_user_login_form', $login_form_state);
     drupal_form_submit('_feed_merger_add_feed_form', $form_state);
-  } else {
+  } /* else {//FIXME this may be necessary
     form_set_error('password', t('Sorry, username and password do not match. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password'))));
-  }
+  }*/
 }
 
 function _feed_merger_login_add_feed_form() {
@@ -262,7 +264,7 @@ function _feed_merger_login_add_feed_form() {
     '#title' => t('Email'),
     '#required' => TRUE,
   );
-  $form['password'] = array(//TODO mandatory
+  $form['password'] = array(
     '#type' => 'password',
     '#title' => t('Password'),
     '#required' => TRUE,
@@ -280,10 +282,12 @@ function feed_merger_block_info() {
   $blocks[0] = array(
     'info' => 'Add to my feed list',
     'cache' => DRUPAL_NO_CACHE,
+    //TODO define block visibility here
   );
   $blocks[1] = array(
     'info' => 'Login and add to my feed list',
     'cache' => DRUPAL_NO_CACHE,
+    //TODO define block visibility here
   );
   return $blocks;
 }

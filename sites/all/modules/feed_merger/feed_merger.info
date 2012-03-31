@@ -2,7 +2,11 @@ name = feed_merger
 description = Generates a merged feed for every user ; sends email upon request
 core = 7.x
 package = Feed Merger
-dependencies[] = user
+dependencies[] = block
+dependencies[] = email_registration
 dependencies[] = node
+dependencies[] = user
+dependencies[] = views
 files[] = HTMLMailSystem.inc
 files[] = libraries/rss-php/feed.class.php
+
