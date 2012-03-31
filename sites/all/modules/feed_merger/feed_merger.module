@@ -1,6 +1,7 @@
 <?php
 
 define('FEED_MERGER_DEFAULT_URL', 'http://example.net/rss.xml');
+define('FEED_MERGER_HOME_PATH', 'feeds');
 
 //TODO interface avec feedburner (cf module feedburner)
 //TODO créer le content-type 'feed' dans le module + la view aussi (utiliser module 'feature' pour exporter tout ça ?)
@@ -177,7 +178,7 @@ function _feed_merger_add_feed_form_validate($form, $form_state) {
   try {
     Feed::loadRss($feedURL);
   } catch(Exception $e) {
-    form_set_error('url', t('Invalid URL. Are you sure %url points to an RSS feed ?', array('%url' => $feedURL)));
+    form_set_error('url', t('Invalid feed %url', array('%url' => $feedURL)));
   }
 }
 
@@ -246,15 +247,14 @@ function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
     $register_form_state['values']['op'] = t('Create new account');//FIXME is that actually necessary ?
     drupal_form_submit('user_register_form', $register_form_state);//FIXME test this !
   }
-  if(user_authenticate($email, $password)) {//FIXME test this !
-    //user/password match -> login user + add feed to feed list
-    $login_form_state['values']['name'] = $email;
-    $login_form_state['values']['pass'] = $password;
-    drupal_form_submit('_user_login_form', $login_form_state);
-    drupal_form_submit('_feed_merger_add_feed_form', $form_state);
-  } /* else {//FIXME this may be necessary
-    form_set_error('password', t('Sorry, username and password do not match. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password'))));
-  }*/
+//authenticate user
+$login_form_state['values']['name'] = $email;
+$login_form_state['values']['pass'] = $password;
+drupal_form_submit('user_login', $login_form_state);//TODO what if authentication fails ?
+//add submitted URL to feed list
+drupal_form_submit('_feed_merger_add_feed_form', $form_state);
+//redirect to home destination page
+drupal_goto();
 }
 
 function _feed_merger_login_add_feed_form() {
