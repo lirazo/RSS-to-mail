@@ -219,52 +219,85 @@ function _feed_merger_add_feed_form() {
 /*****************************************************************************************
  * 'Login and add feed' form
  *****************************************************************************************/
-function _feed_merger_login_add_feed_form_validate($form, $form_state) {
+function _feed_merger_login_add_feed_form_validate($form, &$form_state) {
   /*
-  if(!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
-    form_set_error('email', t('Invalid email address.'));
+  if(!filter_var($form_state['values']['mail'], FILTER_VALIDATE_EMAIL)) {
+    form_set_error('mail', t('Invalid email address.'));
   }
-  if(mb_strlen($form_state['values']['password']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
-    form_set_error('password', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
+  if(mb_strlen($form_state['values']['pass']) < FEED_MERGER_PASSWORD_MIN_SIZE) {
+    form_set_error('pass', t('Password size should have at least @pwd-size characters.', array('@pwd-size' => FEED_MERGER_PASSWORD_MIN_SIZE)));
   }
   */
   //drupal_validate_form('_feed_merger_add_feed_form', $form, $form_state);FIXME this line should be required
+  email_registration_user_login_validate($form, $form_state);
 }
 
 //TODO if user changes his email address then synchronize email with name (hook_node_alter)
-//TODO install module 'email registration'
+//TODO uninstall login_destination (drush dis + remove dependency from .info)
+
+/**
+ * Programatically creates a new user
+ * @param mail email
+ * @param pass password
+ * @return user newly created
+ */
+function _feed_merger_create_user($mail, $pass) {
+  //user does not exist -> register user
+  /*TODO remove this useless code
+  $register_form_state['values']['name'] = $mail;
+  $register_form_state['values']['mail'] = $mail;
+  $register_form_state['values']['pass']['pass1'] = $pass;
+  $register_form_state['values']['pass']['pass2'] = $pass;
+  $register_form_state['values']['op'] = t('Create new account');//FIXME is that actually necessary ?
+  drupal_form_submit('user_register_form', $register_form_state);//FIXME test this !
+  */
+  $edit['name'] = user_password();//TODO is that necessary ?
+  $edit['mail'] = $mail;
+  $edit['pass'] = $pass;
+  $edit['status'] = 1;
+  return user_save(NULL, $edit);
+}
+
+function _feed_merger_get_username($mail) {
+  return db_query('SELECT name from {users} WHERE LOWER(mail) = LOWER(:mail)', array(':mail' => $mail))->fetchField();
+}
+
+function _feed_merger_login_user($mail, $pass) {
+  $name = _feed_merger_get_username($mail);
+  if($uid = user_authenticate($name, $pass)) {
+    global $user;
+    $user = user_load($uid);
+    user_login_finalize();
+    return $uid;
+  } else {
+    return FALSE;
+  }
+}
 
 function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
   //TODO sanitize input values (trim+XSS safe) : email/pwd
-  $email = $form_state['values']['email'];
-  $password = $form_state['values']['password'];
-  if(!user_load_by_mail($email)) {
-    //user does not exist -> register user
-    $register_form_state['values']['name'] = $email;
-    $register_form_state['values']['mail'] = $email;
-    $register_form_state['values']['pass']['pass1'] = $password;
-    $register_form_state['values']['pass']['pass2'] = $password;
-    $register_form_state['values']['op'] = t('Create new account');//FIXME is that actually necessary ?
-    drupal_form_submit('user_register_form', $register_form_state);//FIXME test this !
+  $mail = $form_state['values']['mail'];
+  $pass = $form_state['values']['pass'];
+  if(!user_load_by_mail($mail)) {
+    _feed_merger_create_user($mail, $pass);
+    drupal_set_message(t('Successfully created user %user.', array('%user' => $mail)));
   }
-//authenticate user
-$login_form_state['values']['name'] = $email;
-$login_form_state['values']['pass'] = $password;
-drupal_form_submit('user_login', $login_form_state);//TODO what if authentication fails ?
-//add submitted URL to feed list
-drupal_form_submit('_feed_merger_add_feed_form', $form_state);
-//redirect to home destination page
-drupal_goto();
+  if(_feed_merger_login_user($mail, $pass)) {
+    drupal_form_submit('_feed_merger_add_feed_form', $form_state);//TODO do that only if user/pwd match
+    drupal_goto();
+  } else {
+    form_set_error('pass', t('Username and password don\'t match. <a href="@password">Have you forgotten your password ?</a>', array('@password' => url('user/password'))));
+  }
 }
 
 function _feed_merger_login_add_feed_form() {
   //TODO check CSRF here
-  $form['email'] = array(
+  $form['mail'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
     '#required' => TRUE,
   );
-  $form['password'] = array(
+  $form['pass'] = array(
     '#type' => 'password',
     '#title' => t('Password'),
     '#required' => TRUE,
@@ -282,12 +315,12 @@ function feed_merger_block_info() {
   $blocks[0] = array(
     'info' => 'Add to my feed list',
     'cache' => DRUPAL_NO_CACHE,
-    //TODO define block visibility here
+    //TODO define block visibility here (1:uid!=0 2:page=feeds)
   );
   $blocks[1] = array(
     'info' => 'Login and add to my feed list',
     'cache' => DRUPAL_NO_CACHE,
-    //TODO define block visibility here
+    //TODO define block visibility here (1:uid!=0 2:page=feeds)
   );
   return $blocks;
 }
