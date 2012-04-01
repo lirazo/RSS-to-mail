@@ -303,39 +303,3 @@ function _feed_merger_login_add_feed_form() {
 //TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated" (module 'persistent login')
 //TODO login using Twitter
 
-/**
- * Implementation of hook_block_info
- */
-function feed_merger_block_info() {
-  $blocks[0] = array(
-    'info' => 'Add to my feed list',
-    'cache' => DRUPAL_NO_CACHE,
-    //TODO define block visibility here (1:uid!=0 2:page=feeds)
-  );
-  $blocks[1] = array(
-    'info' => 'Login and add to my feed list',
-    'cache' => DRUPAL_NO_CACHE,
-    //TODO define block visibility here (1:uid!=0 2:page=feeds)
-  );
-  return $blocks;
-}
-
-/**
- * Implementation of hook_block_view
- */
-function feed_merger_block_view($delta = '') {
-  switch($delta) {
-    case 0:
-      return array(
-        'subject' => NULL,
-        'content' => drupal_get_form('_feed_merger_add_feed_form'),
-      );
-    case 1:
-      return array(
-        'subject' => NULL,
-        'content' => drupal_get_form('_feed_merger_login_add_feed_form'),
-      );
-  }
-}
-
-//TODO test if user supplied empty feed URL
