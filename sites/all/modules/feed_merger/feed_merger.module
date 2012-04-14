@@ -203,7 +203,6 @@ function _feed_merger_add_feed_form_submit($form, &$form_state) {
 }
 
 function _feed_merger_add_feed_form() {
-  //TODO check anti-CSRF token here
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => t('Feed URL'),
@@ -284,7 +283,6 @@ function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
 }
 
 function _feed_merger_login_add_feed_form() {
-  //TODO check CSRF here
   $form['mail'] = array(
     '#type' => 'textfield',
     '#title' => t('Email'),
