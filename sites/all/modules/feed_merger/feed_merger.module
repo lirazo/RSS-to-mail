@@ -44,7 +44,7 @@ function _feed_merger_user_has_feed($feedURL) {
   global $user;
   $query = new EntityFieldQuery();
   $countFeeds = $query->entityCondition('entity_type', 'node')
-  ->propertyCondition('type', array('feed'))//TODO can we remove the array ?
+  ->propertyCondition('type', 'feed')
   ->propertyCondition('uid', $user->uid)
   ->fieldCondition('field_link', 'url', $feedURL)
   ->count()
@@ -68,7 +68,6 @@ function _feed_merger_get_feed_items($feed) {
       'pubDate' => format_date(strtotime($item->pubDate), 'custom', 'D, d/m/Y H:i'),
     );
   }
-  //TODO vérifier specs RSS + autres types de feeds
   return $feedItems;
 }
 
