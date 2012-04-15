@@ -292,6 +292,13 @@ function _feed_merger_login_add_feed_form() {
     '#title' => t('Password'),
     '#required' => TRUE,
   );
+  $form['signin'] = array(
+    '#type' => 'link',
+    '#prefix' => t('Already have an account ?') . ' ',
+    '#title' => t('Sign in'),
+    '#href' => 'user',
+    '#weight' => 10,
+  );
   return array_merge($form, _feed_merger_add_feed_form());
 }
 
