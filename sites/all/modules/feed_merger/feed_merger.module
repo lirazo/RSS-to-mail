@@ -2,9 +2,9 @@
 
 define('FEED_MERGER_DEFAULT_URL', 'http://example.net/rss.xml');
 define('FEED_MERGER_HOME_PATH', 'feeds');
+define('FEED_MERGER_WATCHDOG_TAG', 'feed merger');
 
 //TODO interface avec feedburner (cf module feedburner)
-//TODO watchdog
 
 /**
  * Implementation of hook_theme
@@ -104,7 +104,15 @@ function feed_merger_cron() {
   $accounts = entity_load('user');
   foreach($accounts as $account) {
     $feedNodes = _feed_merger_get_feeds($account);
-    if(!empty($feedNodes)) { //TODO watchdog si $feeds is empty ?
+    if(empty($feedNodes)) {
+      //user's feed list is empty
+      watchdog(
+        FEED_MERGER_WATCHDOG_TAG,
+        'User !uid has an empty feed list. No mail sent.',
+        array('!uid' => $account->uid),
+        WATCHDOG_INFO
+      );
+    } else {
       $feeds = array();
       foreach($feedNodes as $feedNode) {
         $feeds[$feedNode->nid] = array(
@@ -292,14 +300,14 @@ function _feed_merger_login_add_feed_form() {
 
 //TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
 //TODO configure Twitter callback URL when put online + have feeds published on a Twitter account
-//TODO Sign *up* with Twitter
+//TODO Create new account with Twitter
 //TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS
 //TODO only send *new* mails (ie check pubDate or maintain a list of sent items)
-//TODO user page -> contact link (to be deleted)
 
 /*
  * Extra features (bonuses)
  */
 //TODO permettre de choisir d'afficher seulement le titre, d'ajouter un summary au début, de trier par date ou par source
 //TODO sort feedItems par pubDate dans la cron()
+//TODO watchdog
 
