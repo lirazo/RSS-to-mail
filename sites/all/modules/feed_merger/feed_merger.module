@@ -5,7 +5,6 @@ define('FEED_MERGER_HOME_PATH', 'feeds');
 
 //TODO interface avec feedburner (cf module feedburner)
 //TODO watchdog
-//TODO have feeds published on a Twitter account
 
 /**
  * Implementation of hook_theme
@@ -20,14 +19,14 @@ function feed_merger_theme() {
 }
 
 /**
- * Returns the list the user has subscribed to
+ * Returns the feed list a user has subscribed to
+ * @param account user
  * @return array of feeds
  */
-function _feed_merger_get_feeds($uid) {
-  global $user;
+function _feed_merger_get_feeds($account) {
   $feeds = entity_load('node', FALSE, array(
     'type' => 'feed',
-    'uid' => $user->uid,
+    'uid' => $account->uid,
   ));
   return $feeds;
 }
@@ -50,18 +49,16 @@ function _feed_merger_user_has_feed($feedURL) {
 }
 
 function _feed_merger_get_feed_items($feed) {
-  $xmlUrl = $feed->field_url[LANGUAGE_NONE][0]['url'];
+  $xmlUrl = $feed->field_link[LANGUAGE_NONE][0]['url'];
   $xmlData = drupal_http_request($xmlUrl)->data;
   $xmlObject = simplexml_load_string($xmlData);
-  //TODO controle XML bien formé ? voir si fourni dans simplexml
   $feedItems = array();
-  $feedTitle = (string) $xmlObject->channel->title;
   foreach($xmlObject->channel->item as $item) {
     $feedItems[] = array(
-      'feedTitle' => $feedTitle,
-      'title' => (string) $item->title,
-      'link' => (string) $item->link,
-      'description' => (string) $item->description,
+      'feedTitle' => filter_xss($xmlObject->channel->title),
+      'title' => filter_xss($item->title),
+      'link' => filter_xss($item->link),
+      'description' => filter_xss($item->description),
       'pubDate' => format_date(strtotime($item->pubDate), 'custom', 'D, d/m/Y H:i'),
     );
   }
@@ -104,14 +101,14 @@ function feed_merger_mail_alter(&$message) {
  * Implementation of hook_cron
  */
 function feed_merger_cron() {
-  $accounds = entity_load('user');
+  $accounts = entity_load('user');
   foreach($accounts as $account) {
-    $feedNodes = _feed_merger_get_feeds();
+    $feedNodes = _feed_merger_get_feeds($account);
     if(!empty($feedNodes)) { //TODO watchdog si $feeds is empty ?
       $feeds = array();
       foreach($feedNodes as $feedNode) {
         $feeds[$feedNode->nid] = array(
-          'title' => $feedNode->title,//TODO sanitize title ? XSS
+          'title' => filter_xss($feedNode->title),
           'items' => _feed_merger_get_feed_items($feedNode),
         );
       }
@@ -122,7 +119,6 @@ function feed_merger_cron() {
       ));
     }
     //TODO sort feedItems par pubDate
-    //TODO check_xss dans un preprocess ? (cf drupal.org/node/933976)
   }
 }
 
@@ -168,7 +164,6 @@ function feed_merger_node_validate($node, $form, &$form_state) {
  *****************************************************************************************/
 
 function _feed_merger_add_feed_form_validate($form, $form_state) {
-  //TODO sanitize/normalize user input (ex. user enters URL wihout leading http -> use module canonical_url / nodewords)
   $feedURL = $form_state['values']['url'];
   if(!empty($feedURL)) {
     try {
@@ -263,7 +258,6 @@ function _feed_merger_login_user($mail, $pass) {
 }
 
 function _feed_merger_login_add_feed_form_submit($form, &$form_state) {
-  //TODO sanitize input values (trim+XSS safe) : email/pwd
   $mail = $form_state['values']['mail'];
   $pass = $form_state['values']['pass'];
   if(!user_load_by_mail($mail)) {
@@ -300,5 +294,6 @@ function _feed_merger_login_add_feed_form() {
 }
 
 //TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
-//TODO configure Twitter callback URL when put online
+//TODO configure Twitter callback URL when put online + have feeds published on a Twitter account
+//TODO Sign *up* with Twitter
 //TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS
