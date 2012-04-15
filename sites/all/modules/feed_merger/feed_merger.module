@@ -4,7 +4,6 @@ define('FEED_MERGER_DEFAULT_URL', 'http://example.net/rss.xml');
 define('FEED_MERGER_HOME_PATH', 'feeds');
 
 //TODO interface avec feedburner (cf module feedburner)
-//TODO hardening => supprimer dépendances de modules inutiles
 //TODO watchdog
 //TODO have feeds published on a Twitter account
 
