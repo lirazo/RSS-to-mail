@@ -118,11 +118,8 @@ function feed_merger_cron() {
         'user' => $account
       ));
     }
-    //TODO sort feedItems par pubDate
   }
 }
-
-//TODO permettre de choisir d'afficher seulement le titre, d'ajouter un summary au début, de trier par date ou par source
 
 /**
  *  Implementation of hook_enable
@@ -234,7 +231,7 @@ function _feed_merger_login_add_feed_form_validate($form, &$form_state) {
  * @return user newly created
  */
 function _feed_merger_create_user($mail, $pass) {
-  $edit['name'] = user_password();//TODO is that necessary ?
+  $edit['name'] = user_password();
   $edit['mail'] = $mail;
   $edit['pass'] = $pass;
   $edit['status'] = 1;
@@ -297,3 +294,12 @@ function _feed_merger_login_add_feed_form() {
 //TODO configure Twitter callback URL when put online + have feeds published on a Twitter account
 //TODO Sign *up* with Twitter
 //TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS
+//TODO only send *new* mails (ie check pubDate or maintain a list of sent items)
+//TODO user page -> contact link (to be deleted)
+
+/*
+ * Extra features (bonuses)
+ */
+//TODO permettre de choisir d'afficher seulement le titre, d'ajouter un summary au début, de trier par date ou par source
+//TODO sort feedItems par pubDate dans la cron()
+
