@@ -164,6 +164,15 @@ function feed_merger_node_validate($node, $form, &$form_state) {
 //TODO mettre une UI pour fixer la langue de l'utilisateur lors de son inscription
 //TODO unsubscribe link (footer of mail)
 
+
+/**
+ * Implementation of hook_user_update
+ */
+function feed_merger_user_update(&$edit, $account, $category = NULL) {
+  //update username accordingly with email upon modification of the latter
+  email_registration_user_insert($edit, $account, $category);
+}
+
 /*****************************************************************************************
  * 'Add feed' form
  *****************************************************************************************/
@@ -229,8 +238,6 @@ function _feed_merger_login_add_feed_form_validate($form, &$form_state) {
   //drupal_validate_form('_feed_merger_add_feed_form', $form, $form_state);FIXME this line should be required
   email_registration_user_login_validate($form, $form_state);
 }
-
-//TODO if user changes his email address then synchronize email with name (hook_node_alter)
 
 /**
  * Programatically creates a new user
