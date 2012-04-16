@@ -11,7 +11,7 @@ function feed_merger_theme() {
   return array(
     'feed_merger_items_email' => array(
       'template' => 'templates/feed-items-email',
-      'variables' => array('feeds' => NULL)
+      'variables' => array('feeds' => NULL, 'unsubscribe' => NULL)
     )
   );
 }
@@ -116,7 +116,8 @@ function feed_merger_cron() {
           'items' => _feed_merger_get_feed_items($feedNode),
         );
       }
-      $output = theme('feed_merger_items_email', array('feeds' => $feeds));
+      $unsubscribe = l(t('Unsubscribe'), 'user/' . $account->uid . '/cancel', array('attributes' => array('title' => t('Unsubscribe'))));
+      $output = theme('feed_merger_items_email', array('feeds' => $feeds, 'unsubscribe' => $unsubscribe));
       drupal_mail('feed_merger', 'feed_items', $account->mail, language_default(), array(
         'feed_items' => $output,
         'user' => $account
@@ -299,9 +300,8 @@ function _feed_merger_login_add_feed_form() {
 
 //TODO configure Twitter callback URL when put online + have feeds published on a Twitter account
 //TODO Create new account with Twitter
-//TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS
+//TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS / unsubscribe link / receive mail
 //TODO only send *new* mails (ie check pubDate or maintain a list of sent items)
-//TODO unsubscribe link (footer of mail)
 //TODO publish on Twitter
 
 /*

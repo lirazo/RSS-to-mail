@@ -13,4 +13,4 @@
   <?php endforeach; ?>
 </div>
 <?php endforeach; ?>
-<a href="#">unsubscribe</a>
+<?php print $unsubscribe; ?>
