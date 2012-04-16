@@ -4,8 +4,6 @@ define('FEED_MERGER_DEFAULT_URL', 'http://example.net/rss.xml');
 define('FEED_MERGER_HOME_PATH', 'feeds');
 define('FEED_MERGER_WATCHDOG_TAG', 'feed merger');
 
-//TODO interface avec feedburner (cf module feedburner)
-
 /**
  * Implementation of hook_theme
  */
@@ -79,8 +77,6 @@ function feed_merger_mail($key, &$message, $params) {
       break;
   }
 }
-
-//TODO US-formatted dates when using format_date + the browser is US
 
 /**
  * Implementation of hook_mail_alter
@@ -160,10 +156,6 @@ function feed_merger_node_validate($node, $form, &$form_state) {
     }
   }
 }
-
-//TODO mettre une UI pour fixer la langue de l'utilisateur lors de son inscription
-//TODO unsubscribe link (footer of mail)
-
 
 /**
  * Implementation of hook_user_update
@@ -305,11 +297,12 @@ function _feed_merger_login_add_feed_form() {
   return array_merge($form, _feed_merger_add_feed_form());
 }
 
-//TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
 //TODO configure Twitter callback URL when put online + have feeds published on a Twitter account
 //TODO Create new account with Twitter
 //TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS
 //TODO only send *new* mails (ie check pubDate or maintain a list of sent items)
+//TODO unsubscribe link (footer of mail)
+//TODO publish on Twitter
 
 /*
  * Extra features (bonuses)
@@ -317,4 +310,6 @@ function _feed_merger_login_add_feed_form() {
 //TODO permettre de choisir d'afficher seulement le titre, d'ajouter un summary au début, de trier par date ou par source
 //TODO sort feedItems par pubDate dans la cron()
 //TODO watchdog
+//TODO US-formatted dates when using format_date + the browser is US +  mettre une UI pour fixer la langue de l'utilisateur lors de son inscription
+//TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
 
