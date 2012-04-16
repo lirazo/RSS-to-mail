@@ -298,18 +298,18 @@ function _feed_merger_login_add_feed_form() {
   return array_merge($form, _feed_merger_add_feed_form());
 }
 
-//TODO configure Twitter callback URL when put online + have feeds published on a Twitter account
-//TODO Create new account with Twitter
-//TODO simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS / unsubscribe link / receive mail
-//TODO only send *new* mails (ie check pubDate or maintain a list of sent items)
-//TODO publish on Twitter
+//TODO Simpletest - add user / add feed / add feed+login / Internet unreachable / malformed RSS / unsubscribe link / receive mail
+//TODO Busines Only send *new* mails (ie check pubDate or maintain a list of sent items)
+//TODO Twitter Configure Twitter callback URL when put online + have feeds published on a Twitter account
+//TODO Twitter Create new account with Twitter
+//TODO Twitter Publish on Twitter
 
 /*
  * Extra features (bonuses)
  */
-//TODO permettre de choisir d'afficher seulement le titre, d'ajouter un summary au début, de trier par date ou par source
-//TODO sort feedItems par pubDate dans la cron()
-//TODO watchdog
-//TODO US-formatted dates when using format_date + the browser is US +  mettre une UI pour fixer la langue de l'utilisateur lors de son inscription
-//TODO below feeds list: add checkbox "send me a daily digest when my feeds get updated"
+//TODO Business sort feedItems par pubDate dans la cron()
+//TODO Tech watchdog
+//TODO UX permettre de choisir d'afficher seulement le titre, d'ajouter un summary au début, de trier par date ou par source
+//TODO UX US-formatted dates when using format_date + the browser is US +  mettre une UI pour fixer la langue de l'utilisateur lors de son inscription
+//TODO UX below feeds list: add checkbox "send me a daily digest when my feeds get updated"
 
